@@ -1,5 +1,7 @@
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
+import { ValidationError } from '@redwoodjs/graphql-server'
+
 import { db } from 'src/lib/db'
 import { logger } from 'src/lib/logger'
 import { mailer } from 'src/lib/mailer'
@@ -18,30 +20,30 @@ export const email: QueryResolvers['email'] = ({ id }) => {
 export const createEmail: MutationResolvers['createEmail'] = async ({
   input,
 }) => {
-  try {
-    const emailData = await sendEmail({ input })
+  logger.debug(input, 'creating email ...')
 
-    logger.debug(emailData, 'sent email')
+  const emailData = await sendEmail({ input })
 
-    return db.email.create({
-      data: emailData,
-    })
-  } catch (error) {
-    throw new Error(error)
-  }
+  logger.debug(emailData, 'saving sent email ...')
+
+  return db.email.create({
+    data: emailData,
+  })
 }
 
 export const sendEmail = async ({ input }) => {
   try {
-    const from = 'RedwoodJS Mailer Service <onboarding@resend.dev>'
+    const from =
+      input.from || 'RedwoodJS Mailer Service <onboarding@resend.dev>'
     const to = input.to || 'delivered@resend.dev'
-    const subject = 'hello world from RedwoodJS'
+    const subject = input.subject || 'hello world from RedwoodJS'
+    const when = new Date().toLocaleString()
 
-    logger.debug({ from, to, subject }, 'sending email')
+    logger.debug({ from, to, subject, when }, 'sending email ....')
 
     const data = await mailer.send(
       ExampleEmail({
-        when: new Date(0).toLocaleString(),
+        when,
       }),
       {
         from,
@@ -50,12 +52,27 @@ export const sendEmail = async ({ input }) => {
       }
     )
 
+    logger.debug(data, 'raw resend email data')
+
+    if (
+      data.handlerInformation &&
+      data.handlerInformation['statusCode'] &&
+      data.handlerInformation['statusCode'] !== 200
+    ) {
+      logger.error(data.handlerInformation, 'error sending email')
+      throw new ValidationError(
+        data.handlerInformation['message'] || 'Unable to send email'
+      )
+    }
+
     const emailData = { from, to, subject, resendId: data.messageID }
 
-    logger.debug(emailData, 'sent email')
+    logger.debug(emailData, 'sent email and saving with data')
 
     return emailData
   } catch (error) {
-    throw new Error(error)
+    logger.error(error, 'Error sending email')
+
+    throw new ValidationError(error)
   }
 }

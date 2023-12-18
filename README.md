@@ -38,3 +38,9 @@ curl http://localhost:8911/send
 ## License
 
 MIT License
+
+
+----
+
+* yarn rw setup mailer
+* yarn workspace api add @redwoodjs/mailer-handler-resend
