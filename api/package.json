@@ -4,10 +4,19 @@
   "private": true,
   "dependencies": {
     "@react-email/button": "0.0.9",
+    "@react-email/components": "^0.0.12",
     "@react-email/html": "0.0.4",
     "@redwoodjs/api": "6.5.1",
     "@redwoodjs/graphql-server": "6.5.1",
+    "@redwoodjs/mailer-core": "6.5.1",
+    "@redwoodjs/mailer-handler-nodemailer": "6.5.1",
+    "@redwoodjs/mailer-handler-resend": "^6.5.1",
+    "@redwoodjs/mailer-renderer-react-email": "6.5.1",
     "react-email": "1.9.4",
     "resend": "^0.17.1"
+  },
+  "devDependencies": {
+    "@redwoodjs/mailer-handler-in-memory": "6.5.1",
+    "@redwoodjs/mailer-handler-studio": "6.5.1"
   }
 }

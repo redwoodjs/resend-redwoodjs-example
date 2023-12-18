@@ -13,6 +13,10 @@ To get the most out of this guide, you’ll need to:
 
 1. Define environment variables in `.env` file.
 
+  ```sh title=.env
+RESEND_API_KEY=<your-key>
+  ```
+
 2. Install dependencies:
 
   ```sh
@@ -28,7 +32,7 @@ yarn redwood dev
 4. Open URL in the browser:
 
   ```sh
-http://localhost:8910/api/send
+curl http://localhost:8911/send
   ```
 
 ## License

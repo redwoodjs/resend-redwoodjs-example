@@ -1,10 +1,9 @@
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
-import { Email } from 'src/mailer/templates/react/emails/email'
-
-import { resend } from 'src/mailer/clients/resend'
 
 import { db } from 'src/lib/db'
 import { logger } from 'src/lib/logger'
+import { mailer } from 'src/lib/mailer'
+import { ExampleEmail } from 'src/mail/Example/Example'
 
 export const emails: QueryResolvers['emails'] = () => {
   return db.email.findMany()
@@ -32,9 +31,7 @@ export const createEmail: MutationResolvers['createEmail'] = async ({
   }
 }
 
-export const sendEmail: MutationResolvers['createEmail'] = async ({
-  input,
-}) => {
+export const sendEmail = async ({ input }) => {
   try {
     const from = 'RedwoodJS Mailer Service <onboarding@resend.dev>'
     const to = input.to || 'delivered@resend.dev'
@@ -42,14 +39,18 @@ export const sendEmail: MutationResolvers['createEmail'] = async ({
 
     logger.debug({ from, to, subject }, 'sending email')
 
-    const data = await resend.emails.send({
-      from,
-      to,
-      subject,
-      react: Email(subject),
-    })
+    const data = await mailer.send(
+      ExampleEmail({
+        when: new Date(0).toLocaleString(),
+      }),
+      {
+        from,
+        to,
+        subject,
+      }
+    )
 
-    const emailData = { from, to, subject, resendId: data.id }
+    const emailData = { from, to, subject, resendId: data.messageID }
 
     logger.debug(emailData, 'sent email')
 
